@@ -1,0 +1,32 @@
+# Ignore user config directory (jangan commit config user pribadi)
+.config/dotup/
+
+# Ignore system-wide config output (kalau ada)
+configs/**/*
+configs/**/*.bak
+configs/**/*.tmp
+configs/**/*.old
+
+# Ignore logs atau output sementara
+logs/
+*.log
+*.tmp
+
+# Ignore action user override lokal
+~/.dotup/
+
+# Editor / OS files
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
+
+# Backup files
+*~
+*.bak
+*.old
+
+# Binary / hasil compile (kalau ada)
+bin/*.exe
+bin/*.out
+bin/*.bin

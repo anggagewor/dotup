@@ -1,0 +1,5 @@
+{
+  "name": "scan",
+  "runtime": "bash",
+  "entry": "run.sh"
+}

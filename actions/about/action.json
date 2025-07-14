@@ -1,0 +1,5 @@
+{
+  "name": "about",
+  "runtime": "bash",
+  "entry": "run.sh"
+}
