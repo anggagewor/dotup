@@ -1,0 +1,5 @@
+{
+  "name": "backup-style",
+  "runtime": "python",
+  "entry": "backup-style.py"
+}

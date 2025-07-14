@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ACTION="${1:-about}"
+ACTION="${1:-}"
 shift || true
 
 # Path resolver
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-
 CONFIG_PATH="$HOME/.config/dotup/config.json"
 
 # Default config generator
@@ -37,11 +36,58 @@ EOF
 ACTIONS_PATHS=$(jq -r '.actions_paths[]' "$CONFIG_PATH")
 DEFAULT_ACTIONS_PATH=$(jq -r '.actions_paths[-1]' "$CONFIG_PATH")
 RUNTIMES=$(jq -r '.runtimes' "$CONFIG_PATH")
-
-# Reserved actions that cannot be overridden
 RESERVED=("about")
 
-# Find action
+# =======================
+# 🎨 ABOUT + DEFAULT BEHAVIOR
+# =======================
+show_about() {
+  CONFIG_PATH_VIEW="${DOTUP_HOME:-$HOME/.dotup}"
+
+  echo "╭────────────────────────────────────────────────────────────────────────────────╮"
+  echo "│ # Dotup — Modular System Setup Framework                                       │"
+  echo "├────────────────────────────────────────────────────────────────────────────────┤"
+  echo "│ 📂 Config path : $CONFIG_PATH_VIEW"
+  echo "│ 📦 Version     : 0.1.0"
+  echo "│ 🐚 Runtime     : Bash, JSON, and pure madness 😎"
+  echo "╰────────────────────────────────────────────────────────────────────────────────╯"
+}
+
+list_actions() {
+  echo
+  echo "📂 Available actions:"
+  for path in $ACTIONS_PATHS; do
+    path=$(eval echo "$path")
+    [[ -d "$path" ]] || continue
+
+    while IFS= read -r dir; do
+      action_name="$(basename "$dir")"
+      meta_file="$dir/action.json"
+      [[ -f "$meta_file" ]] || continue
+
+      if [[ " ${RESERVED[*]} " =~ " $action_name " && "$path" != "$DEFAULT_ACTIONS_PATH" ]]; then
+        continue
+      fi
+
+      echo " - $action_name (from ${path/#$HOME/~})"
+    done < <(find "$path" -maxdepth 1 -mindepth 1 -type d)
+  done
+
+  echo
+  echo "💡 Usage: ./dotup.sh <action> [args...]"
+  echo "   Example: ./dotup.sh backup-style --all"
+  echo
+}
+
+if [[ -z "$ACTION" || "$ACTION" == "about" ]]; then
+  show_about
+  list_actions
+  exit 0
+fi
+
+# =======================
+# 🔍 Find matching action
+# =======================
 FOUND_ACTION=""
 for path in $ACTIONS_PATHS; do
   path=$(eval echo "$path")  # expand ~
@@ -62,28 +108,23 @@ if [[ -z "$FOUND_ACTION" ]]; then
   exit 1
 fi
 
-# Load metadata
+# =======================
+# 🚀 Run the action
+# =======================
 RUNTIME=$(jq -r '.runtime' "$FOUND_ACTION/action.json")
 ENTRY=$(jq -r '.entry' "$FOUND_ACTION/action.json")
 ENTRY_PATH="$FOUND_ACTION/$ENTRY"
 
-# Make sure executable
 [[ -x "$ENTRY_PATH" ]] || chmod +x "$ENTRY_PATH"
 
-# Eksekusi runtime dari config
 RUNTIME_CMD=$(echo "$RUNTIMES" | jq -r --arg key "$RUNTIME" '.[$key] // empty')
-
-if [[ -z "$RUNTIME_CMD" ]]; then
+[[ -z "$RUNTIME_CMD" ]] && {
   echo "❌ Unsupported runtime: $RUNTIME"
   exit 2
-fi
+}
 
-# Expand vars
 RUNTIME_CMD="${RUNTIME_CMD//\{entry\}/\"$ENTRY_PATH\"}"
-
-# Build escaped args
 ARGS_ESCAPED=$(printf '"%s" ' "$@")
 RUNTIME_CMD="${RUNTIME_CMD//\{args\}/$ARGS_ESCAPED}"
 
-# Eksekusi
 eval exec $RUNTIME_CMD
