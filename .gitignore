@@ -1,6 +1,6 @@
 # Ignore user config directory (jangan commit config user pribadi)
 .config/dotup/
-
+/dotfiles
 # Ignore system-wide config output (kalau ada)
 configs/**/*
 configs/**/*.bak

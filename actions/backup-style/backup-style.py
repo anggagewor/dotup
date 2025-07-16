@@ -27,7 +27,7 @@ TARGET_DIR = ROOT_DIR / "configs" / OS_ID
 DOTFILES_DIR = ROOT_DIR / "dotfiles" / "config"
 BACKUP_META_DIR = TARGET_DIR / "backup_metadata"
 
-CONFIG_ITEMS = ["kitty", "hypr", "waybar", "fish", "code", "starship"]
+CONFIG_ITEMS = ["fastfetch","menus","gtk-3.0","gtk-4.0","JetBrains"]
 THEME_DIRS = [HOME / ".themes", HOME / ".local/share/themes"]
 ICON_DIRS = [HOME / ".icons", HOME / ".local/share/icons"]
 FONT_DIRS = [HOME / ".local/share/fonts", HOME / ".fonts"]
